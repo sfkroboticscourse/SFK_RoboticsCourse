@@ -4,10 +4,6 @@
 
 ### Week 1 Recap
 
-**Session Leaders**: Josh Melander, Eshed Margalit, and Tucker Fisher 
-
-Session Recording at [**CNJCx webpage**](https://stanford-cnjc.github.io/#/CNJCx) under the Week 1 session materials.
-
 ## Table of Contents
 
 1. [Prerequisites](#bash-setup)
@@ -66,8 +62,8 @@ through the session at your own pace!
 #### Section 1: Navigating the Home Directory
 
 First, we'll use `pwd` to see what the current working directory is. If you're
-on macOS, you may see something like `/Users/eshed`. If you're on Ubuntu, you
-may see something like `/home/eshed`.
+on macOS, you may see something like `/Users/javierweddington`. If you're on Ubuntu, you
+may see something like `/home/javiercw`.
 
 ```bash
 $ pwd
@@ -533,7 +529,7 @@ download a couple files we wrote for you.
    $ sudo apt-get install git-all
    ```
 
-### 2. Files from Josh-Eshed-Tucker (JET)
+### 2. Files from Javier
 
 **`tmux`** and **`vim`** sometimes get a bad rap. We think this partly due to
 the unfriendly default settings. The files you download below will give us a
