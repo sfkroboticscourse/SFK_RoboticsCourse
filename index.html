@@ -157,6 +157,25 @@
             border-radius: 3px;
             font-family: 'Courier New', monospace;
         }
+
+        .online-phase {
+            background: #d4edda;
+        }
+
+        .onsite-phase {
+            background: #fff;
+        }
+
+        .section-header {
+            background: #343a40 !important;
+            color: white;
+            font-weight: bold;
+        }
+
+        .section-header td {
+            background: #343a40;
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -164,8 +183,6 @@
         SFK Robotics / Winter 2026 Intensive / Mini Pupper 2
     </div>
 
-    <!-- <h1>Spring 2025 (Archived)</h1> -->
-    
     <h1>SFK Robotics Winter Program: Building AI-Enabled Robots with Mini Pupper 2</h1>
 
     <img src="minipupperimg,png.webp" alt="Mini Pupper 2 Robot" class="robot-image">
@@ -178,14 +195,12 @@
         <li>Co-TA: [TBD] </li>
     </ul>
 
-    <!-- <p><strong>Sign-Up Form:</strong> <a href="#">This form</a> will open on Friday, 3/7/2025 at 9AM PST for applications. Please fill out this form if you are interested in enrolling for our Spring offering!</p> -->
-
     <h2>Overview:</h2>
     <p>Welcome to the course page for class on legged robots using the Mini Pupper 2 platform! This course offers a hands-on introduction to AI-powered robotics. Unlike most introductory robotics courses, students will learn essential robotics concepts by constructing a Mini Pupper 2 quadruped robot and training it to perform real-world tasks such as navigation and command following. The course covers a broad range of topics critical to robot learning, including motor control, forward and inverse kinematics, system identification, simulation, and reinforcement learning. Through intensive labs, students will construct and program the Mini Pupper 2 robot. In the final days, students will undertake a project demonstrating their robot's capabilities.</p>
 
-    <p><strong>Time:</strong> TBD </p>
+    <p><strong>Time:</strong> December 21, 2025 – January 31, 2026 (Online + Onsite)</p>
 
-    <p><strong>Lecture Location:</strong> TBD</a>, <em>in-person attendance required</em></p>
+    <p><strong>Lecture Location:</strong> TBD</a>, <em>in-person attendance required for onsite phase</em></p>
 
     <p><strong>Instructor Office Hours:</strong></p>
     <ul>
@@ -208,8 +223,6 @@
         <li>understanding of gradients</li>
         <li>No robotics experience necessary!!</li>
     </ul>
-
-    <!-- <p><strong>Number of credits:</strong> 3</p> -->
 
     <p><strong>Grading:</strong> Students will work in assigned groups for all labs and the final project. All group members will receive the same score for each lab. Some labs may include individual written homework, which will be graded separately.</p>
 
@@ -235,7 +248,6 @@
         </ul>
         <p><strong>One of these recomended sensor(s):</strong></p>
         <ul>
-            <!-- <li>STL-06P LiDAR Module - $49 (for SLAM projects)</li> -->
             <li>Pi Camera v2 - or OAK-D-Lite - (for vision projects)</li>
             <li>OV5647 Camera module package</li>
         </ul>
@@ -243,91 +255,156 @@
         <p><strong>Optional Sensor:</strong></p>
         <ul>
             <li>STL-06P LiDAR Module (for SLAM projects)</li>
-            <!-- <li>Pi Camera v2 - $25 or OAK-D-Lite - $149 (for vision projects)</li> -->
         </ul>
-        <!-- <p><em>Financial assistance available - contact javiercw@stanford.edu after enrollment confirmation</em></p> -->
     </div>
 
     <h2>Schedule</h2>
 
     <div class="schedule-note">
-        <strong>Winter Intensive Format (January 19-28, 2026):</strong> This course is offered as a 10-day intensive program with 10 hours of online preparation followed by hands-on instruction. Students will complete preparatory work at home before the onsite component begins.
+        <strong>Winter Intensive Format:</strong> This course is offered as a combined online and onsite program with 10 hours of online preparation (Javier sessions) + 10 hours of SFK online sessions, followed by hands-on onsite instruction. Online sessions comprise two parts: technical foundation building (ROS2, Python, MiniPupper) and design thinking courses that focus on exploring design topics, conducting design research, and defining initial concept. Total: 10 Hour Online + 20 Lecture & Lab = 30 hours.
     </div>
 
+    <h3>Online Phase (December 21, 2025 – January 18, 2026)</h3>
     <table>
         <tr>
-            <th>Day/Phase</th>
+            <th>Session</th>
+            <th>Date/Time</th>
             <th>Lecture</th>
-            <th>Lab</th>
-            <th>Format</th>
+            <th>Resources</th>
         </tr>
-        <tr>
-            <td>Online Prep</td>
-            <td colspan="2">5 sessions × 2 hours: Introduction to ROS2, Python review, Mini Pupper 2 overview</td>
-            <td>Online (before Jan 19)</td>
+        <tr class="online-phase">
+            <td>SFK Online 1</td>
+            <td>2025/12/21 Sun<br>13:30-15:30 BJ</td>
+            <td>Introduction & Workshop</td>
+            <td>TBD</td>
         </tr>
-        <tr>
-            <td>Day 1 (Jan 19)</td>
-            <td colspan="2">Arrival + Opening Ceremony</td>
-            <td>Evening</td>
+        <tr class="online-phase">
+            <td>SFK Online 2</td>
+            <td>2025/12/24 Wed<br>19:00-21:00 BJ</td>
+            <td>Project Proposal & Discussion</td>
+            <td>TBD</td>
         </tr>
-        <tr>
-            <td>Day 2 (Jan 20)</td>
-            <td><a href="https://cs123-stanford.readthedocs.io/en/latest/schedule/lectures/spring-25/lec-1.html">ROS Introduction and PD Control</a></td>
-            <td><a href="https://cs123-stanford.readthedocs.io/en/latest/schedule/labs/spring-25/lab-1.html">Lab 1: ROS Introduction and PD Control</a></td>
-            <td>4 hours</td>
+        <tr class="online-phase">
+            <td>Javier Online Session 1</td>
+            <td>2025/12/27 Sat<br>10-12 am BJ<br>(12/26 Fri 6-8 pm PST)</td>
+            <td>ROS2 Fundamentals</td>
+            <td>TBD</td>
         </tr>
-        <tr>
-            <td>Day 3 (Jan 21)</td>
-            <td><a href="https://cs123-stanford.readthedocs.io/en/latest/schedule/lectures/spring-25/lec-2.html">Forward Kinematics</a></td>
-            <td><a href="https://cs123-stanford.readthedocs.io/en/latest/schedule/labs/spring-25/lab-2.html">Lab 2: Forward Kinematics</a></td>
-            <td>4 hours</td>
+        <tr class="online-phase">
+            <td>SFK Online 3</td>
+            <td>2026/12/28 Sun<br>13:30-15:30 BJ</td>
+            <td>Research Course</td>
+            <td>TBD</td>
         </tr>
-        <tr>
-            <td>Day 4 (Jan 22)</td>
-            <td colspan="2">Tour/Free Day</td>
-            <td>Cultural activity</td>
+        <tr class="online-phase">
+            <td>Javier Online Session 2</td>
+            <td>2026/1/1 Thurs<br>10-12 am BJ<br>(12/31 Wed 6-8 pm PST)</td>
+            <td>Mini Pupper Visualization & Structure in ROS2, Rviz (In simulation)</td>
+            <td>TBD</td>
         </tr>
-        <tr>
-            <td>Day 5 (Jan 23)</td>
-            <td><a href="https://cs123-stanford.readthedocs.io/en/latest/schedule/lectures/spring-25/lec-3.html">Inverse Kinematics</a></td>
-            <td><a href="https://cs123-stanford.readthedocs.io/en/latest/schedule/labs/spring-25/lab-3.html">Lab 3: Inverse Kinematics</a></td>
-            <td>4 hours</td>
+        <tr class="online-phase">
+            <td>Javier Online Session 3</td>
+            <td>2026/1/3 Sat<br>10-12 am BJ<br>(1/2 Fri 6-8 pm PST)</td>
+            <td>Sensor Data & Processing (In simulation)</td>
+            <td>TBD</td>
         </tr>
-        <tr>
-            <td>Day 6 (Jan 24)</td>
-            <td><a href="https://cs123-stanford.readthedocs.io/en/latest/schedule/lectures/spring-25/lec-4.html">Gait Control</a></td>
-            <td><a href="https://cs123-stanford.readthedocs.io/en/latest/schedule/labs/spring-25/lab-4.html">Lab 4: Model Based Control and Trotting Gait Implementation</a></td>
-            <td>4 hours</td>
+        <tr class="online-phase">
+            <td>SFK Online 4</td>
+            <td>2026/1/7 Wed<br>19:00-21:00 BJ</td>
+            <td>Design Concepts & Methods</td>
+            <td>TBD</td>
         </tr>
-        <tr>
-            <td>Day 7 (Jan 25)</td>
-            <td colspan="2">Tour/Free Day</td>
-            <td>Cultural activity</td>
+        <tr class="online-phase">
+            <td>Javier Online Session 4</td>
+            <td>2026/1/11 Sun<br>10-12 am BJ<br>(1/10 Sat 6-8 pm PST)</td>
+            <td>Navigation & Localization Basics (Simulation)</td>
+            <td>TBD</td>
         </tr>
-        <tr>
-            <td>Day 8 (Jan 26)</td>
-            <td><a href="https://cs123-stanford.readthedocs.io/en/latest/schedule/lectures/spring-25/lec-5.html">Reinforcement Learning for Robotics</a> + <a href="https://cs123-stanford.readthedocs.io/en/latest/schedule/lectures/spring-25/lec-6.html">Computer Vision</a></td>
-            <td><a href="https://cs123-stanford.readthedocs.io/en/latest/schedule/labs/spring-25/lab-5.html">Lab 5: How to Train Your Dog</a> + <a href="https://cs123-stanford.readthedocs.io/en/latest/schedule/labs/spring-25/lab-6.html">Lab 6: Seeing is Believing</a></td>
-            <td>4 hours</td>
+        <tr class="online-phase">
+            <td>SFK Online 5</td>
+            <td>2026/1/14 Wed<br>19:00-21:00 BJ</td>
+            <td>Project Proposal Presentation</td>
+            <td>TBD</td>
         </tr>
-        <tr>
-            <td>Day 9 (Jan 27)</td>
-            <td><a href="https://cs123-stanford.readthedocs.io/en/latest/schedule/lectures/spring-25/lec-7.html">Language Models for Robotics</a></td>
-            <td><a href="https://cs123-stanford.readthedocs.io/en/latest/schedule/labs/spring-25/lab-7.html">Lab 7: Do What I Say</a> + Project Work</td>
-            <td>Free/Project Day</td>
-        </tr>
-        <tr>
-            <td>Day 10 (Jan 28)</td>
-            <td colspan="2">Exhibition + Closing Ceremony</td>
-            <td>Full day</td>
+        <tr class="online-phase">
+            <td>Javier Online Session 5</td>
+            <td>2026/1/18 Sun<br>10-12 am BJ<br>(1/17 Sat 6-8 pm PST)</td>
+            <td>Project Planning & Tool Deep-Dive</td>
+            <td>What sensors/ROS2 packages will you need to build your project?</td>
         </tr>
     </table>
 
-    <p><strong>Total Contact Hours:</strong> 10 hours online + 20 hours onsite instruction = 30 hours</p>
+    <h3>Onsite Phase (January 22–31, 2026)</h3>
+    <table>
+        <tr>
+            <th>Day/Date</th>
+            <th>Morning (10:00-12:00)</th>
+            <th>Afternoon (14:00-17:00)</th>
+            <th>Evening</th>
+        </tr>
+        <tr>
+            <td><strong>Day 1</strong><br>Thurs 1/22</td>
+            <td colspan="2">Arrival (12:00-14:00)</td>
+            <td>Opening & Ice-Breaking Activities (19:00-20:00)<br>Rest</td>
+        </tr>
+        <tr>
+            <td><strong>Day 2</strong><br>Fri 1/23</td>
+            <td>Morning Call + Breakfast + Course Set-up (8:00-9:30)<br>Hardware Familiarization (10:00-12:00)</td>
+            <td>Hardware Familiarization (14:00-16:00)<br>SFK Design Course: Define-Critique (16:00-17:00)<br>SFK Studio (17:00-19:00)</td>
+            <td>Self-study session (20:00-22:00)</td>
+        </tr>
+        <tr>
+            <td><strong>Day 3</strong><br>Sat 1/24</td>
+            <td>Iterative Building (10:00-12:00)</td>
+            <td>Iterative Building (14:00-16:00)<br>SFK Design Course: Design-Lecture (16:00-17:00)<br>SFK Studio (17:00-19:00)</td>
+            <td>Self-study session (20:00-22:00)</td>
+        </tr>
+        <tr>
+            <td><strong>Day 4</strong><br>Sun 1/25</td>
+            <td>SFK Design Course: Design-Critique (10:00-12:00)</td>
+            <td>SFK Studio (14:00-16:00)<br>SFK Studio Professor Yu (16:00-17:00)<br>SFK Studio (17:00-19:00)</td>
+            <td>Self-study session (20:00-22:00)</td>
+        </tr>
+        <tr>
+            <td><strong>Day 5</strong><br>Mon 1/26</td>
+            <td>Iterative Building (10:00-12:00)</td>
+            <td>Lunch + Break (12:00-14:00)<br>Iterative Building (14:00-16:00)<br>SFK Design Course: Develop-Tutorial (16:00-17:00)<br>SFK Studio (17:00-19:00)</td>
+            <td>Dinner (19:00-20:00)</td>
+        </tr>
+        <tr>
+            <td><strong>Day 6</strong><br>Tues 1/27</td>
+            <td>Iterative Building (10:00-12:00)</td>
+            <td>Iterative Building (14:00-16:00)<br>SFK Design Course: Develop-Critique (16:00-17:00)<br>SFK Studio (17:00-19:00)</td>
+            <td>Self-study session (20:00-22:00)</td>
+        </tr>
+        <tr>
+            <td><strong>Day 7</strong><br>Wed 1/28</td>
+            <td>Iterative Building (10:00-12:00)</td>
+            <td>Iterative Building (14:00-16:00)<br>SFK Design Course: Outcome-Tutorial (16:00-17:00)<br>SFK Studio (17:00-19:00)</td>
+            <td>Self-study session (20:00-22:00)</td>
+        </tr>
+        <tr>
+            <td><strong>Day 8</strong><br>Thurs 1/29</td>
+            <td>Optional Lecture: Language Models for Robotics (10:00-12:00)</td>
+            <td>Polish & Integration (14:00-16:00)<br>SFK Studio (17:00-19:00)</td>
+            <td>—</td>
+        </tr>
+        <tr>
+            <td><strong>Day 9</strong><br>Fri 1/30</td>
+            <td colspan="2">Final Exhibition Preparation</td>
+            <td>Day Off for Instructor (Javier)</td>
+        </tr>
+        <tr>
+            <td><strong>Day 10</strong><br>Sat 1/31</td>
+            <td colspan="2">Final Exhibition (Research Talk at the beginning of the day?)</td>
+            <td>Return Home</td>
+        </tr>
+    </table>
+
+    <p><strong>Total Contact Hours:</strong> 10 hours online (Javier) + 10 hours online (SFK) + 20 hours onsite instruction = 30 hours</p>
 
     <h2>Software Requirements</h2>
-    <p>All software is open-source and will be installed during Lab 1:</p>
+    <p>All software is open-source and will be installed during the online sessions:</p>
     <ul>
         <li>Ubuntu 22.04 LTS (for Raspberry Pi)</li>
         <li>ROS2 Humble</li>
@@ -341,19 +418,13 @@
     <div class="info-box">
         <p><strong>Program Details:</strong></p>
         <ul>
-            <li><strong>Dates:</strong> January 19-28, 2026</li>
-            <li><strong>Format:</strong> 10 hours online preparation + 10 days onsite intensive course</li>
+            <li><strong>Dates:</strong> December 21, 2025 – January 31, 2026</li>
+            <li><strong>Format:</strong> 20 hours online preparation + 10 days onsite intensive course</li>
             <li><strong>Outcome:</strong> Project-based with reference letters for qualified students</li>
-            <!-- <li><strong>Support:</strong> Accommodation, travel expenses, meals, and visa fees covered for selected participants</li> -->
-            <!-- <li><strong>Team Support:</strong> Overseas Professor, Academic Supervisor, SFK Tutor, Tech Assistance, Program Coordinator</li> -->
         </ul>
     </div>
 
     <p><strong>References:</strong> <a href="https://cs123-stanford.readthedocs.io/en/latest/reference/references.html">References Page</a></p>
-    
-    <!-- <p><strong>Past Course Projects:</strong> <a href="https://cs123-stanford.readthedocs.io/en/latest/reference/past_projects.html">Past Course Projects</a></p> -->
-    
-    <!-- <p><strong>Old course materials:</strong> <a href="https://cs123-stanford.readthedocs.io/en/latest/reference/past_offerings.html">Further Past Offerings</a></p> -->
 
     <div class="footer">
         <h3>Attribution</h3>
