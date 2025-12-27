@@ -1,4 +1,3 @@
-# CNJCx: Practical Python
 ## Command Line Basics (Week 1)
 ### Reference Material
 
@@ -14,7 +13,7 @@ The following table documents all of the commands that were introduced in week 1
 | `ls` | "list"s the contents of your current working directory, including files and directories |`ls -l` lists the contents with one entry per line, and `ls -rt` lists the contents in order of the last [t]ime they were modified, but [r]everses the list so that the last-modified entry is at the bottom (useful in directories with many entries). `ls -lrt` is an example of combining flags. Lists one entry per line, sorted in reverse chronological order |
 | `ls [directory]` | "list"s the contents of the specified directory instead of the current working directory | Same as `ls`|
 | `cd [directory]` | [c]hange [d]irectory. Changes the current working directory to the directory provided: replace `[directory]` with the relative or absolute path to the desired directory | `cd ~` returns you to your home directory |
-| `mkdir [new_directory]` | create a new directory. replace `[new_directory]` with the relative or absolute path to the directory to be created | `mkdir -p` creates parent directories if needed, e.g., if you want to `mkdir cnjcx/week1` but `cnjcx/` doesn't exist yet, the `-p` flag allows `mkdir` to create it along the way |
+| `mkdir [new_directory]` | create a new directory. replace `[new_directory]` with the relative or absolute path to the directory to be created | `mkdir -p` creates parent directories if needed, e.g., if you want to `mkdir sfkrobotics/week1` but `sfkrobotics/` doesn't exist yet, the `-p` flag allows `mkdir` to create it along the way |
 | `touch [filename]` | creates a file with the specified filename, or, if the file already exists, updates the record of when it was last modified | N/A |
 | `clear` | clears the output currently visible in the terminal window | N/A |
 | `cat [filename]` | print the contents of a file to the standard output, i.e., the terminal | `cat -n` will print line numbers next to each line of the printed file |
