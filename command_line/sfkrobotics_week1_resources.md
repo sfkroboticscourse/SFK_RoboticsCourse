@@ -2,8 +2,6 @@
 ## Command Line Basics (Week 1)
 ### Reference Material
 
-**Session Leaders**: Josh Melander, Eshed Margalit, and Tucker Fisher
-
 ## Table of Contents
 1. [Table of Commands](#commands)
 1. [Resources and Tips](#rnt)
