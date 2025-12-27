@@ -268,7 +268,7 @@ files. They are written out here so you can go through it on your own!
 
 The ability to write scripts is extremely powerful, as you can automate tasks
 that would be difficult or cumbersome to do by hand. We'll walk you through
-downloading a shell script written by Eshed, then we'll go line by line and
+downloading a shell script written by Eshed Margalit (Stanford Neuroscience PhD, 2021), then we'll go line by line and
 explain what's happening.
 
 **What will this script do?** The script creates 4 new directories: "week_3",
