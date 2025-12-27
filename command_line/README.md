@@ -1,8 +1,6 @@
 # SFK Robotics: Practical Command line
 ## Command Line Basics (Week 1)
 
-**Session Leaders**: Josh Melander, Eshed Margalit, and Tucker Fisher
-
 ### [Click Here for Week 1 Recap :book:](sfkrobotics_week1_recap.md)
 - a recap of the code-along portion of Week 1
 - instructions to prepare for Week 2
