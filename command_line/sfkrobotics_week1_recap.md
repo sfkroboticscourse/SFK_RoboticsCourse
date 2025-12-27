@@ -1,5 +1,3 @@
-# CNJCx: Practical Python
-
 ## Command Line Basics (Week 1)
 
 ### Week 1 Recap
@@ -21,7 +19,7 @@ Prior to the first session, you should be able to open a terminal with the
 instructions below. Feel free to type `echo $SHELL` at the command prompt and
 hit enter to see the shell you’re using. It should say either `/bin/bash` (if
 you’re using Bash) or `/bin/zsh` (if you’re using Zsh). Both will work for
-CNJCx: Practical Python.
+sfkrobotics: Practical Python.
 
 ### For MacOS users
 
@@ -100,19 +98,19 @@ $ pwd
 
 #### Section 2: Creating Files and Directories
 
-Create a new directory called "cnjcx" in the current working directory, then use
+Create a new directory called "sfkrobotics" in the current working directory, then use
 `ls` to show the newly-created directory.
 
 ```bash
-$ mkdir cnjcx
+$ mkdir sfkrobotics
 $ ls -lrt
 ```
 
-Change working directory to "cnjcx" by providing the relative path, then run
+Change working directory to "sfkrobotics" by providing the relative path, then run
 `pwd` to see where in the filesystem you are.
 
 ```bash
-$ cd cnjcx
+$ cd sfkrobotics
 $ pwd
 ```
 
@@ -143,36 +141,36 @@ $ echo "Hello World"
 can be redirected to a file using the `>` and `>>` operators.
 
 The `>>` operator appends text to the bottom of a file. We'll use it to write
-"Hello World" to the bottom of our `cnjcx/notes.txt`. Use `cat` to print the
+"Hello World" to the bottom of our `sfkrobotics/notes.txt`. Use `cat` to print the
 contents of the file to confirm that "Hello World" was successfully added to the
 bottom of the file.
 
 ```bash
-$ echo "Hello World" >> cnjcx/notes.txt
-$ cat cnjcx/notes.txt
+$ echo "Hello World" >> sfkrobotics/notes.txt
+$ cat sfkrobotics/notes.txt
 ```
 
 The `>` operator doesn't append messages, but overwrites the contents of the
 file (or creates a file if one doesn't exist already). To practice, let's first
 overwrite the contents of the notes file with the string "Absolute Path to ~: ",
 then append the output of `pwd` to the bottom of the file. Use `cat` to verify
-that the file contains what you expect. Finally, let's `cd` into the "cnjcx"
+that the file contains what you expect. Finally, let's `cd` into the "sfkrobotics"
 directory and append a bunch of dashes ("------") to the bottom of the file.
 
 **If you run into problems because the file already exists**: try using `>|`
 instead of `>` to force the overwrite.
 
 ```bash
-$ echo "Absolute Path to ~: " > cnjcx/notes.txt
-$ pwd >> cnjcx/notes.txt
-$ cd cnjcx
+$ echo "Absolute Path to ~: " > sfkrobotics/notes.txt
+$ pwd >> sfkrobotics/notes.txt
+$ cd sfkrobotics
 $ echo "---------" >> notes.txt
 $ cat notes.txt
 ```
 
 Notice that in this previous block, relative paths changed halfway through. When
-we were in the home directory, we specified notes with `cnjcx/notes.txt`. When
-we were in the `cnjcx` directory, we specified notes with `notes.txt`.
+we were in the home directory, we specified notes with `sfkrobotics/notes.txt`. When
+we were in the `sfkrobotics` directory, we specified notes with `notes.txt`.
 
 #### Section 4: Finding and appending storage info
 
@@ -198,10 +196,10 @@ $ cd ~
 $ clear
 ```
 
-Enter the cnjcx directory and list its contents.
+Enter the sfkrobotics directory and list its contents.
 
 ```bash
-$ cd cnjcx
+$ cd sfkrobotics
 $ pwd
 $ ls
 ```
@@ -230,7 +228,7 @@ using its *absolute* path.
 $ cp -r week_1/ week_2/
 $ echo "Week 2 notes below: " > week_2/notes.txt
 $ ls
-$ cat ~/cnjcx/week_2/notes.txt
+$ cat ~/sfkrobotics/week_2/notes.txt
 
 ```
 
@@ -243,22 +241,22 @@ $ cd ~
 $ clear
 ```
 
-Use `find` to search for files named "notes.txt" in the `cnjcx/` directory.
+Use `find` to search for files named "notes.txt" in the `sfkrobotics/` directory.
 Then, try using the search pattern "\*.txt" to find all files with the .txt
 extension.
 
 ```console
-$ find cnjcx/ -name 'notes.txt'
-$ find cnjcx/ -name '*.txt'
+$ find sfkrobotics/ -name 'notes.txt'
+$ find sfkrobotics/ -name '*.txt'
 ```
 
-Use `grep -R` to search each file in `cnjcx/` for the pattern "Storage Info".
+Use `grep -R` to search each file in `sfkrobotics/` for the pattern "Storage Info".
 Repeat the command with `--context=1` to print a line above and below each match
 to provide "context".
 
 ```console
-$ grep -R "Storage Info" cnjcx
-$ grep -R --context=1 "Storage Info" cnjcx # give 1 line above and below
+$ grep -R "Storage Info" sfkrobotics
+$ grep -R --context=1 "Storage Info" sfkrobotics # give 1 line above and below
 ```
 
 ### Bonus Materials<a name="bonus"></a>
@@ -284,7 +282,7 @@ indicates the filename that the downloaded contents should be saved to. Run the
 `curl` command then `ls` to see the newly-created file.
 
 ```bash
-$ cd ~/cnjcx
+$ cd ~/sfkrobotics
 $ curl -L -o create_week_notes.sh https://git.io/JJQJa
 $ ls
 ```
@@ -584,7 +582,7 @@ processes, including training deep neural networks.
 
 
 [sherlocklink]: https://www.sherlock.stanford.edu/docs/overview/introduction/
-[cnjcxlink]: https://stanford-cnjc.github.io/#/CNJCx
+[sfkroboticslink]: https://stanford-cnjc.github.io/#/sfkrobotics
 [hblink]: https://brew.sh/
 [iterm2link]: https://www.iterm2.com/downloads.html
 [ubuntutermlink]: https://www.wikihow.com/Open-a-Terminal-Window-in-Ubuntu
