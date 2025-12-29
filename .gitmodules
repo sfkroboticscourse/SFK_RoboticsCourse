@@ -1,0 +1,3 @@
+[submodule "src/sfk_mini_pupper_ros"]
+	path = src/sfk_mini_pupper_ros
+	url = https://github.com/javiercweddington/sfk_mini_pupper_ros.git
