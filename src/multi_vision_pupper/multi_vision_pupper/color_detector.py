@@ -34,37 +34,63 @@ import json
 
 
 # Color dictionary: name -> (lower_hsv, upper_hsv)
-# These are tuned for typical indoor lighting - may need adjustment
+# HSV ranges: H=0-180, S=0-255, V=0-255
+# These are tuned to be more permissive for varying lighting conditions
+#
+# IMPORTANT NOTES:
+# - Hue (H) determines the actual color (0=red, 30=yellow, 60=green, 90=cyan, 120=blue, 150=magenta)
+# - Saturation (S) is color intensity - low S means washed out/grey
+# - Value (V) is brightness - low V means dark/black
+#
+# For colors that appear "blue" when they shouldn't:
+# - Usually means the lighting is too cool/fluorescent
+# - Or the saturation threshold is too high (missing pastel colors)
+
 COLOR_DICTIONARY = {
+    # Red wraps around in HSV (0 and 180 are both red)
     'red': {
-        'lower1': np.array([0, 100, 100]),
+        'lower1': np.array([0, 70, 50]),      # Dark red to bright red
         'upper1': np.array([10, 255, 255]),
-        'lower2': np.array([160, 100, 100]),  # Red wraps around in HSV
+        'lower2': np.array([165, 70, 50]),    # Wraps around
         'upper2': np.array([180, 255, 255]),
     },
     'orange': {
-        'lower': np.array([10, 100, 100]),
+        'lower': np.array([10, 70, 50]),
         'upper': np.array([25, 255, 255]),
     },
     'yellow': {
-        'lower': np.array([25, 100, 100]),
-        'upper': np.array([35, 255, 255]),
+        'lower': np.array([20, 70, 50]),      # Overlaps slightly with orange
+        'upper': np.array([40, 255, 255]),
     },
     'green': {
-        'lower': np.array([35, 100, 100]),
-        'upper': np.array([85, 255, 255]),
+        'lower': np.array([35, 40, 40]),      # Lower saturation for pale greens
+        'upper': np.array([90, 255, 255]),    # Wide range to catch teal
     },
     'blue': {
-        'lower': np.array([85, 100, 100]),
+        'lower': np.array([90, 50, 50]),      # Cyan to blue
         'upper': np.array([130, 255, 255]),
     },
     'purple': {
-        'lower': np.array([130, 100, 100]),
-        'upper': np.array([160, 255, 255]),
+        'lower': np.array([125, 40, 40]),     # Blue-purple to magenta
+        'upper': np.array([165, 255, 255]),
     },
     'pink': {
-        'lower': np.array([140, 50, 100]),
-        'upper': np.array([170, 255, 255]),
+        'lower': np.array([140, 30, 100]),    # Light magenta/pink - needs higher V
+        'upper': np.array([175, 200, 255]),   # Lower saturation for pastel pink
+    },
+    # New additions for your color set
+    'black': {
+        'lower': np.array([0, 0, 0]),         # Any hue, any saturation
+        'upper': np.array([180, 255, 50]),    # But very low value (dark)
+    },
+    'grey': {
+        'lower': np.array([0, 0, 50]),        # Any hue
+        'upper': np.array([180, 50, 200]),    # Low saturation (desaturated)
+    },
+    # White can also be useful
+    'white': {
+        'lower': np.array([0, 0, 200]),       # Any hue, low saturation, high value
+        'upper': np.array([180, 50, 255]),
     },
 }
 
@@ -80,11 +106,26 @@ class ColorDetector(Node):
         self.declare_parameter('min_area', 500)
         self.declare_parameter('color_follow', False)
         self.declare_parameter('enabled_colors', list(COLOR_DICTIONARY.keys()))
+        self.declare_parameter('turn_speed', 0.5)
+        
+        # Commitment mode parameters
+        self.declare_parameter('commitment_mode', True)
+        self.declare_parameter('action_duration', 0.5)
+        self.declare_parameter('pause_duration', 0.3)
         
         self.visualization = self.get_parameter('visualization').value
         self.min_area = self.get_parameter('min_area').value
         self.color_follow = self.get_parameter('color_follow').value
         self.enabled_colors = self.get_parameter('enabled_colors').value
+        self.turn_speed = self.get_parameter('turn_speed').value
+        self.commitment_mode = self.get_parameter('commitment_mode').value
+        self.action_duration = self.get_parameter('action_duration').value
+        self.pause_duration = self.get_parameter('pause_duration').value
+        
+        # Commitment state machine
+        self.state = 'ASSESS'
+        self.state_start_time = self.get_clock().now()
+        self.current_action = Twist()
         
         # CV Bridge
         self.bridge = CvBridge()
@@ -102,7 +143,8 @@ class ColorDetector(Node):
         
         self.get_logger().info(
             f"Color detector started. Detecting: {self.enabled_colors}, "
-            f"visualization={self.visualization}, follow={self.color_follow}")
+            f"visualization={self.visualization}, follow={self.color_follow}, "
+            f"commitment_mode={self.commitment_mode}")
     
     def detect_color(self, hsv_frame, color_name, color_params):
         """
@@ -197,18 +239,54 @@ class ColorDetector(Node):
         self.color_pub.publish(result_msg)
         
         # Color following mode - turn towards largest color region
-        if self.color_follow and largest_detection:
-            color_name, detection = largest_detection
-            cx = detection['centroid'][0]
+        if self.color_follow:
+            desired_twist = Twist()
             
-            # Calculate yaw rate based on x position
-            # Negative when target is on left, positive when on right
-            error = (cx - width/2) / (width/2)  # Normalized to [-1, 1]
-            yaw_rate = -error * 0.8  # Proportional control, max 0.8 rad/s
+            if largest_detection:
+                color_name, detection = largest_detection
+                cx = detection['centroid'][0]
+                
+                # Calculate yaw rate based on x position
+                error = (width/2 - cx) / (width/2)  # Normalized to [-1, 1]
+                desired_twist.angular.z = error * self.turn_speed
             
-            twist = Twist()
-            twist.angular.z = yaw_rate
-            self.cmd_vel_pub.publish(twist)
+            # === COMMITMENT MODE STATE MACHINE ===
+            if self.commitment_mode:
+                now = self.get_clock().now()
+                elapsed = (now - self.state_start_time).nanoseconds / 1e9
+                
+                if self.state == 'ASSESS':
+                    if largest_detection and abs(desired_twist.angular.z) > 0.1:
+                        # Need to turn - commit to this action
+                        self.current_action = desired_twist
+                        self.state = 'EXECUTE'
+                        self.state_start_time = now
+                        self.get_logger().info(
+                            f"COMMIT: turning toward {color_name}, angular.z={desired_twist.angular.z:.2f} "
+                            f"for {self.action_duration}s")
+                    else:
+                        # Centered or no target - stop
+                        self.current_action = Twist()
+                        self.cmd_vel_pub.publish(self.current_action)
+                
+                elif self.state == 'EXECUTE':
+                    if elapsed < self.action_duration:
+                        self.cmd_vel_pub.publish(self.current_action)
+                    else:
+                        self.state = 'PAUSE'
+                        self.state_start_time = now
+                        self.cmd_vel_pub.publish(Twist())
+                        self.get_logger().info(f"PAUSE: stopping to reassess for {self.pause_duration}s")
+                
+                elif self.state == 'PAUSE':
+                    self.cmd_vel_pub.publish(Twist())
+                    if elapsed >= self.pause_duration:
+                        self.state = 'ASSESS'
+                        self.state_start_time = now
+                        self.get_logger().info("ASSESS: looking for colors...")
+            else:
+                # Non-commitment mode - continuous control
+                self.cmd_vel_pub.publish(desired_twist)
         
         # Visualization
         if self.visualization:

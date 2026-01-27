@@ -74,10 +74,24 @@ class PoseDetector(Node):
         self.declare_parameter('detection_confidence', 0.5)
         self.declare_parameter('tracking_confidence', 0.5)
         
+        # Commitment mode parameters
+        self.declare_parameter('commitment_mode', True)
+        self.declare_parameter('action_duration', 0.5)
+        self.declare_parameter('pause_duration', 0.3)
+        
         self.visualization = self.get_parameter('visualization').value
         self.control_enabled = self.get_parameter('control_enabled').value
         self.forward_speed = self.get_parameter('forward_speed').value
         self.turn_speed = self.get_parameter('turn_speed').value
+        self.commitment_mode = self.get_parameter('commitment_mode').value
+        self.action_duration = self.get_parameter('action_duration').value
+        self.pause_duration = self.get_parameter('pause_duration').value
+        
+        # Commitment state machine
+        self.state = 'ASSESS'
+        self.state_start_time = self.get_clock().now()
+        self.current_action = Twist()
+        self.current_gesture = 'NONE'
         self.detection_confidence = self.get_parameter('detection_confidence').value
         self.tracking_confidence = self.get_parameter('tracking_confidence').value
         
@@ -239,17 +253,60 @@ class PoseDetector(Node):
         result_msg.data = json.dumps(result)
         self.pose_pub.publish(result_msg)
         
-        # Publish velocity command
-        twist = Twist()
+        # Build desired twist from command
+        desired_twist = Twist()
         if self.control_enabled:
-            twist.linear.x = command['linear_x']
-            twist.angular.z = command['angular_z']
-        self.cmd_vel_pub.publish(twist)
+            desired_twist.linear.x = command['linear_x']
+            desired_twist.angular.z = command['angular_z']
         
-        if landmarks is not None:
-            self.get_logger().info(
-                f"Pose detected: {gesture}, vx={command['linear_x']:.2f}, "
-                f"wz={command['angular_z']:.2f}")
+        # === COMMITMENT MODE STATE MACHINE ===
+        if self.commitment_mode and self.control_enabled:
+            now = self.get_clock().now()
+            elapsed = (now - self.state_start_time).nanoseconds / 1e9
+            
+            if self.state == 'ASSESS':
+                # Check if we have a meaningful gesture (not STOP or NEUTRAL)
+                is_action_gesture = gesture not in ['T_POSE_STOP', 'ARMS_DOWN_STOP', 'NEUTRAL', 'UNKNOWN', 'NONE']
+                
+                if landmarks is not None and is_action_gesture:
+                    # Commit to this action
+                    self.current_action = desired_twist
+                    self.current_gesture = gesture
+                    self.state = 'EXECUTE'
+                    self.state_start_time = now
+                    self.get_logger().info(
+                        f"COMMIT: gesture={gesture}, linear.x={desired_twist.linear.x:.2f}, "
+                        f"angular.z={desired_twist.angular.z:.2f} for {self.action_duration}s")
+                else:
+                    # Stop gesture or no detection - stop
+                    self.current_action = Twist()
+                    self.cmd_vel_pub.publish(self.current_action)
+                    if landmarks is not None:
+                        self.get_logger().info(f"Gesture: {gesture} -> stopping")
+            
+            elif self.state == 'EXECUTE':
+                if elapsed < self.action_duration:
+                    self.cmd_vel_pub.publish(self.current_action)
+                else:
+                    self.state = 'PAUSE'
+                    self.state_start_time = now
+                    self.cmd_vel_pub.publish(Twist())
+                    self.get_logger().info(f"PAUSE: stopping to reassess for {self.pause_duration}s")
+            
+            elif self.state == 'PAUSE':
+                self.cmd_vel_pub.publish(Twist())
+                if elapsed >= self.pause_duration:
+                    self.state = 'ASSESS'
+                    self.state_start_time = now
+                    self.get_logger().info("ASSESS: looking for pose...")
+        
+        elif self.control_enabled:
+            # Non-commitment mode - continuous control
+            self.cmd_vel_pub.publish(desired_twist)
+            if landmarks is not None:
+                self.get_logger().info(
+                    f"Pose detected: {gesture}, vx={command['linear_x']:.2f}, "
+                    f"wz={command['angular_z']:.2f}")
         
         # Visualization
         if self.visualization:

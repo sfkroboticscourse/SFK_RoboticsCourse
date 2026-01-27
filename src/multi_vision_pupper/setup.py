@@ -38,6 +38,8 @@ setup(
             'pose_detector = multi_vision_pupper.pose_detector:main',
             # OAK-D specific (uses neural accelerator)
             'oakd_person_detector = multi_vision_pupper.oakd_person_detector:main',
+            # Tools
+            'hsv_calibrator = multi_vision_pupper.hsv_calibrator:main',
             # Controller
             'vision_controller = multi_vision_pupper.vision_controller:main',
         ],

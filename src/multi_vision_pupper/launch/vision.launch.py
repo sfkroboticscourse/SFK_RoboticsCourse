@@ -1,38 +1,46 @@
 #!/usr/bin/env python3
 """
-Main launch file for pupper_vision package.
+Main launch file for multi_vision_pupper package (OV5647 / RPi Camera).
 
 This launch file starts the camera node and one of the detection modes.
 
 Usage:
     # Color detection (Task 1)
-    ros2 launch pupper_vision vision.launch.py mode:=color
+    ros2 launch multi_vision_pupper vision.launch.py mode:=color
     
     # Shape detection (Task 2)
-    ros2 launch pupper_vision vision.launch.py mode:=shape target_color:=green
+    ros2 launch multi_vision_pupper vision.launch.py mode:=shape target_color:=green
     
     # Person detection (Task 3)
-    ros2 launch pupper_vision vision.launch.py mode:=person
+    ros2 launch multi_vision_pupper vision.launch.py mode:=person
     
     # Pose detection (Task 4)
-    ros2 launch pupper_vision vision.launch.py mode:=pose
+    ros2 launch multi_vision_pupper vision.launch.py mode:=pose
 
     # With visualization (for PC viewing)
-    ros2 launch pupper_vision vision.launch.py mode:=person visualization:=true
+    ros2 launch multi_vision_pupper vision.launch.py mode:=person visualization:=true
 
     # Simulation mode (no camera needed)
-    ros2 launch pupper_vision vision.launch.py mode:=color simulation:=true
+    ros2 launch multi_vision_pupper vision.launch.py mode:=color simulation:=true
+
+    # Adjust commitment timing
+    ros2 launch multi_vision_pupper vision.launch.py mode:=shape action_duration:=0.8 pause_duration:=0.4
+
+    # Disable commitment mode (continuous tracking)
+    ros2 launch multi_vision_pupper vision.launch.py mode:=person commitment_mode:=false
 """
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, GroupAction
-from launch.conditions import IfCondition, UnlessCondition
+from launch.actions import DeclareLaunchArgument
+from launch.conditions import IfCondition
 from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch_ros.actions import Node
 
 
 def generate_launch_description():
-    # Declare launch arguments
+    # ===================
+    # Launch Arguments
+    # ===================
     mode_arg = DeclareLaunchArgument(
         'mode',
         default_value='color',
@@ -63,12 +71,62 @@ def generate_launch_description():
         description='Flip camera image 180 degrees'
     )
     
-    # Get launch configurations
+    confidence_arg = DeclareLaunchArgument(
+        'confidence',
+        default_value='0.5',
+        description='Detection confidence threshold'
+    )
+    
+    # Commitment mode parameters
+    commitment_mode_arg = DeclareLaunchArgument(
+        'commitment_mode',
+        default_value='true',
+        description='Enable commitment mode (step-based movement)'
+    )
+    
+    action_duration_arg = DeclareLaunchArgument(
+        'action_duration',
+        default_value='0.5',
+        description='Duration to execute each action (seconds)'
+    )
+    
+    pause_duration_arg = DeclareLaunchArgument(
+        'pause_duration',
+        default_value='0.3',
+        description='Duration to pause between actions (seconds)'
+    )
+    
+    # Speed parameters
+    forward_speed_arg = DeclareLaunchArgument(
+        'forward_speed',
+        default_value='0.15',
+        description='Forward/backward speed'
+    )
+    
+    turn_speed_arg = DeclareLaunchArgument(
+        'turn_speed',
+        default_value='0.5',
+        description='Turning speed'
+    )
+    
+    # ===================
+    # Get Configurations
+    # ===================
     mode = LaunchConfiguration('mode')
     visualization = LaunchConfiguration('visualization')
     simulation = LaunchConfiguration('simulation')
     target_color = LaunchConfiguration('target_color')
     flip = LaunchConfiguration('flip')
+    confidence = LaunchConfiguration('confidence')
+    commitment_mode = LaunchConfiguration('commitment_mode')
+    action_duration = LaunchConfiguration('action_duration')
+    pause_duration = LaunchConfiguration('pause_duration')
+    forward_speed = LaunchConfiguration('forward_speed')
+    turn_speed = LaunchConfiguration('turn_speed')
+    
+    # ===================
+    # Nodes
+    # ===================
     
     # Camera node
     camera_node = Node(
@@ -79,8 +137,8 @@ def generate_launch_description():
             'width': 640,
             'height': 480,
             'fps': 30,
-            'flip': LaunchConfiguration('flip'),
-            'use_simulation': LaunchConfiguration('simulation'),
+            'flip': flip,
+            'use_simulation': simulation,
         }],
         output='screen'
     )
@@ -91,9 +149,13 @@ def generate_launch_description():
         executable='color_detector',
         name='color_detector',
         parameters=[{
-            'visualization': LaunchConfiguration('visualization'),
+            'visualization': visualization,
             'min_area': 500,
             'color_follow': True,
+            'turn_speed': turn_speed,
+            'commitment_mode': commitment_mode,
+            'action_duration': action_duration,
+            'pause_duration': pause_duration,
         }],
         condition=IfCondition(
             PythonExpression(["'", mode, "' == 'color'"])
@@ -107,11 +169,16 @@ def generate_launch_description():
         executable='shape_detector',
         name='shape_detector',
         parameters=[{
-            'visualization': LaunchConfiguration('visualization'),
-            'target_color': LaunchConfiguration('target_color'),
+            'visualization': visualization,
+            'target_color': target_color,
             'target_radius': 80,
             'radius_tolerance': 15,
             'control_enabled': True,
+            'forward_speed': forward_speed,
+            'turn_speed': turn_speed,
+            'commitment_mode': commitment_mode,
+            'action_duration': action_duration,
+            'pause_duration': pause_duration,
         }],
         condition=IfCondition(
             PythonExpression(["'", mode, "' == 'shape'"])
@@ -125,11 +192,14 @@ def generate_launch_description():
         executable='person_detector',
         name='person_detector',
         parameters=[{
-            'visualization': LaunchConfiguration('visualization'),
-            'confidence_threshold': 0.5,
+            'visualization': visualization,
+            'confidence_threshold': confidence,
             'control_enabled': True,
             'max_yaw_rate': 1.0,
             'model_type': 'hog',  # Use HOG by default (no model files needed)
+            'commitment_mode': commitment_mode,
+            'action_duration': action_duration,
+            'pause_duration': pause_duration,
         }],
         condition=IfCondition(
             PythonExpression(["'", mode, "' == 'person'"])
@@ -143,10 +213,14 @@ def generate_launch_description():
         executable='pose_detector',
         name='pose_detector',
         parameters=[{
-            'visualization': LaunchConfiguration('visualization'),
+            'visualization': visualization,
             'control_enabled': True,
-            'forward_speed': 0.15,
-            'turn_speed': 0.6,
+            'forward_speed': forward_speed,
+            'turn_speed': turn_speed,
+            'detection_confidence': confidence,
+            'commitment_mode': commitment_mode,
+            'action_duration': action_duration,
+            'pause_duration': pause_duration,
         }],
         condition=IfCondition(
             PythonExpression(["'", mode, "' == 'pose'"])
@@ -161,6 +235,12 @@ def generate_launch_description():
         simulation_arg,
         target_color_arg,
         flip_arg,
+        confidence_arg,
+        commitment_mode_arg,
+        action_duration_arg,
+        pause_duration_arg,
+        forward_speed_arg,
+        turn_speed_arg,
         # Nodes
         camera_node,
         color_detector_node,

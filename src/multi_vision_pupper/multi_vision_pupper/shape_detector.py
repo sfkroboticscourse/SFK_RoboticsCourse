@@ -38,29 +38,46 @@ import numpy as np
 import json
 
 
-# Color ranges for circle stickers (same as color_detector)
+# Color ranges for circle stickers - more permissive ranges
+# These match the improved color_detector ranges
 STICKER_COLORS = {
     'red': {
-        'lower1': np.array([0, 120, 100]),
+        'lower1': np.array([0, 70, 50]),
         'upper1': np.array([10, 255, 255]),
-        'lower2': np.array([160, 120, 100]),
+        'lower2': np.array([165, 70, 50]),
         'upper2': np.array([180, 255, 255]),
     },
     'orange': {
-        'lower': np.array([10, 120, 100]),
+        'lower': np.array([10, 70, 50]),
         'upper': np.array([25, 255, 255]),
     },
     'yellow': {
-        'lower': np.array([25, 120, 100]),
-        'upper': np.array([35, 255, 255]),
+        'lower': np.array([20, 70, 50]),
+        'upper': np.array([40, 255, 255]),
     },
     'green': {
-        'lower': np.array([35, 120, 100]),
-        'upper': np.array([85, 255, 255]),
+        'lower': np.array([35, 40, 40]),
+        'upper': np.array([90, 255, 255]),
     },
     'blue': {
-        'lower': np.array([85, 120, 100]),
+        'lower': np.array([90, 50, 50]),
         'upper': np.array([130, 255, 255]),
+    },
+    'purple': {
+        'lower': np.array([125, 40, 40]),
+        'upper': np.array([165, 255, 255]),
+    },
+    'pink': {
+        'lower': np.array([140, 30, 100]),
+        'upper': np.array([175, 200, 255]),
+    },
+    'black': {
+        'lower': np.array([0, 0, 0]),
+        'upper': np.array([180, 255, 50]),
+    },
+    'grey': {
+        'lower': np.array([0, 0, 50]),
+        'upper': np.array([180, 50, 200]),
     },
 }
 
