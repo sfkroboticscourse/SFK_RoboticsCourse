@@ -20,6 +20,30 @@ Usage:
     # Pose detection (gesture control)
     ros2 launch multi_vision_pupper oakd_vision.launch.py mode:=pose
 
+    # === NEW: Pose Behavior Tracker Modes ===
+    
+    # Gesture control (same as pose but with more gestures)
+    ros2 launch multi_vision_pupper oakd_vision.launch.py mode:=behavior behavior_mode:=gesture_control
+    
+    # Exercise counter (count squats, jumping jacks, arm raises)
+    ros2 launch multi_vision_pupper oakd_vision.launch.py mode:=behavior behavior_mode:=exercise_counter exercise_type:=squats
+    ros2 launch multi_vision_pupper oakd_vision.launch.py mode:=behavior behavior_mode:=exercise_counter exercise_type:=jumping_jacks
+    ros2 launch multi_vision_pupper oakd_vision.launch.py mode:=behavior behavior_mode:=exercise_counter exercise_type:=arm_raises
+    
+    # Activity tracker (detect standing, sitting, walking, jumping)
+    ros2 launch multi_vision_pupper oakd_vision.launch.py mode:=behavior behavior_mode:=activity_tracker
+
+    # === SCOLIOSIS PREVENTION: Posture Monitor ===
+    
+    # Monitor sitting posture for scoliosis prevention
+    ros2 launch multi_vision_pupper oakd_vision.launch.py mode:=posture visualization:=true
+    
+    # With Chinese alerts
+    ros2 launch multi_vision_pupper oakd_vision.launch.py mode:=posture language:=zh
+    
+    # Adjust sensitivity
+    ros2 launch multi_vision_pupper oakd_vision.launch.py mode:=posture slouch_threshold:=15.0 tilt_threshold:=10.0
+
     # With visualization
     ros2 launch multi_vision_pupper oakd_vision.launch.py mode:=person visualization:=true
 
@@ -42,7 +66,45 @@ def generate_launch_description():
     mode_arg = DeclareLaunchArgument(
         'mode',
         default_value='person',
-        description='Detection mode: person, camera, color, shape, pose'
+        description='Detection mode: person, camera, color, shape, pose, behavior, posture'
+    )
+    
+    # Behavior tracker parameters
+    behavior_mode_arg = DeclareLaunchArgument(
+        'behavior_mode',
+        default_value='gesture_control',
+        description='Behavior mode: gesture_control, exercise_counter, activity_tracker'
+    )
+    
+    exercise_type_arg = DeclareLaunchArgument(
+        'exercise_type',
+        default_value='squats',
+        description='Exercise type: squats, jumping_jacks, arm_raises'
+    )
+    
+    # Posture monitor parameters (scoliosis prevention)
+    language_arg = DeclareLaunchArgument(
+        'language',
+        default_value='en',
+        description='Alert language: en (English) or zh (Chinese)'
+    )
+    
+    slouch_threshold_arg = DeclareLaunchArgument(
+        'slouch_threshold',
+        default_value='20.0',
+        description='Slouching detection threshold (degrees)'
+    )
+    
+    tilt_threshold_arg = DeclareLaunchArgument(
+        'tilt_threshold',
+        default_value='8.0',
+        description='Shoulder tilt threshold (degrees)'
+    )
+    
+    sitting_alert_arg = DeclareLaunchArgument(
+        'sitting_alert_minutes',
+        default_value='30',
+        description='Minutes before sitting-too-long alert'
     )
     
     visualization_arg = DeclareLaunchArgument(
@@ -121,6 +183,12 @@ def generate_launch_description():
     pause_duration = LaunchConfiguration('pause_duration')
     forward_speed = LaunchConfiguration('forward_speed')
     turn_speed = LaunchConfiguration('turn_speed')
+    behavior_mode = LaunchConfiguration('behavior_mode')
+    exercise_type = LaunchConfiguration('exercise_type')
+    language = LaunchConfiguration('language')
+    slouch_threshold = LaunchConfiguration('slouch_threshold')
+    tilt_threshold = LaunchConfiguration('tilt_threshold')
+    sitting_alert_minutes = LaunchConfiguration('sitting_alert_minutes')
     
     # ===================
     # Nodes
@@ -151,7 +219,7 @@ def generate_launch_description():
         output='screen'
     )
     
-    # OAK-D Camera only node (for modes that need camera stream: camera, color, shape, pose)
+    # OAK-D Camera only node (for modes that need camera stream: camera, color, shape, pose, behavior, posture)
     oakd_camera_node = Node(
         package='multi_vision_pupper',
         executable='oakd_camera_node',
@@ -165,7 +233,7 @@ def generate_launch_description():
             'enable_nn': False,
         }],
         condition=IfCondition(
-            PythonExpression(["'", mode, "' in ['camera', 'color', 'shape', 'pose']"])
+            PythonExpression(["'", mode, "' in ['camera', 'color', 'shape', 'pose', 'behavior', 'posture']"])
         ),
         output='screen'
     )
@@ -234,9 +302,61 @@ def generate_launch_description():
         output='screen'
     )
     
+    # Pose Behavior Tracker (mode=behavior)
+    # Supports: gesture_control, exercise_counter, activity_tracker
+    pose_behavior_node = Node(
+        package='multi_vision_pupper',
+        executable='pose_behavior_tracker',
+        name='pose_behavior_tracker',
+        parameters=[{
+            'visualization': visualization,
+            'control_enabled': True,
+            'forward_speed': forward_speed,
+            'turn_speed': turn_speed,
+            'detection_confidence': confidence,
+            'behavior_mode': behavior_mode,
+            'exercise_type': exercise_type,
+            'commitment_mode': commitment_mode,
+            'action_duration': action_duration,
+            'pause_duration': pause_duration,
+        }],
+        condition=IfCondition(
+            PythonExpression(["'", mode, "' == 'behavior'"])
+        ),
+        output='screen'
+    )
+    
+    # Posture Monitor for Scoliosis Prevention (mode=posture)
+    # Detects: crossed legs, slouching, side leaning, sitting too long
+    posture_monitor_node = Node(
+        package='multi_vision_pupper',
+        executable='posture_monitor',
+        name='posture_monitor',
+        parameters=[{
+            'visualization': visualization,
+            'alert_enabled': True,
+            'language': language,
+            'slouch_threshold': slouch_threshold,
+            'tilt_threshold': tilt_threshold,
+            'sitting_alert_minutes': sitting_alert_minutes,
+            'movement_alert': True,
+            'detection_confidence': confidence,
+        }],
+        condition=IfCondition(
+            PythonExpression(["'", mode, "' == 'posture'"])
+        ),
+        output='screen'
+    )
+    
     return LaunchDescription([
         # Arguments
         mode_arg,
+        behavior_mode_arg,
+        exercise_type_arg,
+        language_arg,
+        slouch_threshold_arg,
+        tilt_threshold_arg,
+        sitting_alert_arg,
         visualization_arg,
         flip_arg,
         nn_blob_arg,
@@ -253,4 +373,6 @@ def generate_launch_description():
         color_detector_node,
         shape_detector_node,
         pose_detector_node,
+        pose_behavior_node,
+        posture_monitor_node,
     ])

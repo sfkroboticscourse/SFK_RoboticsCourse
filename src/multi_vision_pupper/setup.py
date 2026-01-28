@@ -38,8 +38,15 @@ setup(
             'pose_detector = multi_vision_pupper.pose_detector:main',
             # OAK-D specific (uses neural accelerator)
             'oakd_person_detector = multi_vision_pupper.oakd_person_detector:main',
+            # Advanced pose tracking
+            'pose_behavior_tracker = multi_vision_pupper.pose_behavior_tracker:main',
+            # Posture monitor for scoliosis prevention
+            'posture_monitor = multi_vision_pupper.posture_monitor:main',
             # Tools
             'hsv_calibrator = multi_vision_pupper.hsv_calibrator:main',
+            # Student project nodes
+            'find_and_stop = multi_vision_pupper.find_and_stop:main',
+            'email_notifier = multi_vision_pupper.email_notifier:main',
             # Controller
             'vision_controller = multi_vision_pupper.vision_controller:main',
         ],
