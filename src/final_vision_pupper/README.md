@@ -1,4 +1,4 @@
-# pupper_vision - Vision Package for Mini Pupper
+# multi_vision_pupper - Vision Package for Mini Pupper
 
 A clean, simple ROS2 vision package for Mini Pupper with OV5647 camera. 
 Designed for teaching robotics - much simpler than the MangDang implementation!
@@ -27,7 +27,7 @@ This package provides **4 detection modes** that all work out of the box:
 ```bash
 # Clone into your workspace
 cd ~/ros2_ws/src
-git clone <this-repo> pupper_vision
+git clone <this-repo> multi_vision_pupper
 
 # Install dependencies
 cd ~/ros2_ws
@@ -37,7 +37,7 @@ rosdep install --from-paths src --ignore-src -r -y
 pip3 install mediapipe --break-system-packages
 
 # Build
-colcon build --packages-select pupper_vision
+colcon build --packages-select multi_vision_pupper
 source install/setup.bash
 ```
 
@@ -50,23 +50,23 @@ ros2 launch mini_pupper_bringup bringup.launch.py
 # Terminal 2: Start vision (pick one mode)
 
 # Task 1: Color Detection
-ros2 launch pupper_vision vision.launch.py mode:=color
+ros2 launch multi_vision_pupper vision.launch.py mode:=color
 
 # Task 2: Shape Detection (track green circles)
-ros2 launch pupper_vision vision.launch.py mode:=shape target_color:=green
+ros2 launch multi_vision_pupper vision.launch.py mode:=shape target_color:=green
 
 # Task 3: Person Detection
-ros2 launch pupper_vision vision.launch.py mode:=person
+ros2 launch multi_vision_pupper vision.launch.py mode:=person
 
 # Task 4: Pose Detection
-ros2 launch pupper_vision vision.launch.py mode:=pose
+ros2 launch multi_vision_pupper vision.launch.py mode:=pose
 ```
 
 ### With Visualization (for PC viewing)
 
 ```bash
 # On the Mini Pupper
-ros2 launch pupper_vision vision.launch.py mode:=person visualization:=true
+ros2 launch multi_vision_pupper vision.launch.py mode:=person visualization:=true
 
 # On your PC (same network)
 ros2 run rqt_image_view rqt_image_view
@@ -77,7 +77,7 @@ ros2 run rqt_image_view rqt_image_view
 
 ```bash
 # Test on your laptop without camera hardware
-ros2 launch pupper_vision vision.launch.py mode:=color simulation:=true visualization:=true
+ros2 launch multi_vision_pupper vision.launch.py mode:=color simulation:=true visualization:=true
 ```
 
 ## Detailed Mode Descriptions
@@ -87,7 +87,7 @@ ros2 launch pupper_vision vision.launch.py mode:=color simulation:=true visualiz
 Detects colors from a predefined dictionary and announces what's detected.
 
 ```bash
-ros2 launch pupper_vision vision.launch.py mode:=color
+ros2 launch multi_vision_pupper vision.launch.py mode:=color
 ```
 
 **Topics Published:**
@@ -109,7 +109,7 @@ color_detector:
 Tracks colored circle stickers and moves to maintain a target distance.
 
 ```bash
-ros2 launch pupper_vision vision.launch.py mode:=shape target_color:=green
+ros2 launch multi_vision_pupper vision.launch.py mode:=shape target_color:=green
 ```
 
 **Control Logic:**
@@ -127,7 +127,7 @@ ros2 launch pupper_vision vision.launch.py mode:=shape target_color:=green
 Detects people and turns to keep them centered in the frame.
 
 ```bash
-ros2 launch pupper_vision vision.launch.py mode:=person
+ros2 launch multi_vision_pupper vision.launch.py mode:=person
 ```
 
 **Models:**
@@ -141,7 +141,7 @@ ros2 launch pupper_vision vision.launch.py mode:=person
 Uses MediaPipe Pose to detect arm gestures for control.
 
 ```bash
-ros2 launch pupper_vision vision.launch.py mode:=pose
+ros2 launch multi_vision_pupper vision.launch.py mode:=pose
 ```
 
 **Gestures:**

@@ -60,7 +60,12 @@ class PersonDetector(Node):
         self.declare_parameter('control_enabled', True)
         self.declare_parameter('max_yaw_rate', 1.0)
         self.declare_parameter('kp', 0.8)  # Proportional gain for yaw control
-        self.declare_parameter('model_type', 'mobilenet_ssd')  # or 'hog'
+        self.declare_parameter('model_type', 'hog')  # 'hog' or 'mobilenet_ssd'
+        
+        # Commitment mode parameters
+        self.declare_parameter('commitment_mode', True)
+        self.declare_parameter('action_duration', 0.5)
+        self.declare_parameter('pause_duration', 0.3)
         
         self.confidence_threshold = self.get_parameter('confidence_threshold').value
         self.visualization = self.get_parameter('visualization').value
@@ -68,6 +73,14 @@ class PersonDetector(Node):
         self.max_yaw_rate = self.get_parameter('max_yaw_rate').value
         self.kp = self.get_parameter('kp').value
         self.model_type = self.get_parameter('model_type').value
+        self.commitment_mode = self.get_parameter('commitment_mode').value
+        self.action_duration = self.get_parameter('action_duration').value
+        self.pause_duration = self.get_parameter('pause_duration').value
+        
+        # Commitment state machine
+        self.state = 'ASSESS'
+        self.state_start_time = self.get_clock().now()
+        self.current_action = Twist()
         
         # CV Bridge
         self.bridge = CvBridge()
@@ -218,33 +231,68 @@ class PersonDetector(Node):
             } for p in persons]
         }
         
-        twist = Twist()  # Default: stop
+        # Calculate desired action
+        desired_twist = Twist()
         
         if persons and self.control_enabled:
-            # Track the largest (closest) person
             target = persons[0]
             cx = target['center'][0]
             
             # Calculate yaw rate to center person in frame
-            # Positive error = person on left = turn left (positive yaw)
-            error = (width/2 - cx) / (width/2)  # Normalized [-1, 1]
+            error = (width/2 - cx) / (width/2)
             yaw_rate = self.kp * error
-            
-            # Clamp to max yaw rate
             yaw_rate = max(-self.max_yaw_rate, min(self.max_yaw_rate, yaw_rate))
-            
-            twist.angular.z = yaw_rate
-            
-            self.get_logger().info(
-                f"Person detected: conf={target['confidence']:.2f}, "
-                f"center={target['center']}, yaw_rate={yaw_rate:.3f}")
+            desired_twist.angular.z = yaw_rate
         
-        # Publish results
+        # Publish detection results
         result_msg = String()
         result_msg.data = json.dumps(result)
         self.person_pub.publish(result_msg)
         
-        self.cmd_vel_pub.publish(twist)
+        # === COMMITMENT MODE STATE MACHINE ===
+        if self.commitment_mode and self.control_enabled:
+            now = self.get_clock().now()
+            elapsed = (now - self.state_start_time).nanoseconds / 1e9
+            
+            if self.state == 'ASSESS':
+                if persons and abs(desired_twist.angular.z) > 0.1:
+                    # Need to turn - commit to this action
+                    self.current_action = desired_twist
+                    self.state = 'EXECUTE'
+                    self.state_start_time = now
+                    self.get_logger().info(
+                        f"COMMIT: person detected, turning angular.z={desired_twist.angular.z:.2f} "
+                        f"for {self.action_duration}s")
+                else:
+                    # Centered or no person - stop
+                    self.current_action = Twist()
+                    self.cmd_vel_pub.publish(self.current_action)
+                    if persons:
+                        self.get_logger().info(f"Person centered, holding position")
+            
+            elif self.state == 'EXECUTE':
+                if elapsed < self.action_duration:
+                    self.cmd_vel_pub.publish(self.current_action)
+                else:
+                    self.state = 'PAUSE'
+                    self.state_start_time = now
+                    self.cmd_vel_pub.publish(Twist())
+                    self.get_logger().info(f"PAUSE: stopping to reassess for {self.pause_duration}s")
+            
+            elif self.state == 'PAUSE':
+                self.cmd_vel_pub.publish(Twist())
+                if elapsed >= self.pause_duration:
+                    self.state = 'ASSESS'
+                    self.state_start_time = now
+                    self.get_logger().info("ASSESS: looking for person...")
+        
+        elif self.control_enabled:
+            # Non-commitment mode - continuous control
+            self.cmd_vel_pub.publish(desired_twist)
+            if persons:
+                self.get_logger().info(
+                    f"Person detected: conf={persons[0]['confidence']:.2f}, "
+                    f"center={persons[0]['center']}, yaw_rate={desired_twist.angular.z:.3f}")
         
         # Visualization
         if self.visualization:

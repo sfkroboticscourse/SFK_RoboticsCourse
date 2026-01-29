@@ -1,11 +1,12 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>pupper_vision</name>
+  <name>final_vision_pupper</name>
   <version>1.0.0</version>
   <description>
-    Vision package for Mini Pupper with OV5647 camera.
-    Supports: color detection, shape detection, person tracking, and pose estimation.
+    Multi-camera vision package for Mini Pupper.
+    Supports OV5647 (RPi Camera) and OAK-D cameras.
+    Includes: color detection, shape detection, person tracking, and pose estimation.
   </description>
   <maintainer email="your@email.com">Baccus Lab</maintainer>
   <license>MIT</license>

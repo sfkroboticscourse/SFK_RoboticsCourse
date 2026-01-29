@@ -38,29 +38,46 @@ import numpy as np
 import json
 
 
-# Color ranges for circle stickers (same as color_detector)
+# Color ranges for circle stickers - more permissive ranges
+# These match the improved color_detector ranges
 STICKER_COLORS = {
     'red': {
-        'lower1': np.array([0, 120, 100]),
+        'lower1': np.array([0, 70, 50]),
         'upper1': np.array([10, 255, 255]),
-        'lower2': np.array([160, 120, 100]),
+        'lower2': np.array([165, 70, 50]),
         'upper2': np.array([180, 255, 255]),
     },
     'orange': {
-        'lower': np.array([10, 120, 100]),
+        'lower': np.array([10, 70, 50]),
         'upper': np.array([25, 255, 255]),
     },
     'yellow': {
-        'lower': np.array([25, 120, 100]),
-        'upper': np.array([35, 255, 255]),
+        'lower': np.array([20, 70, 50]),
+        'upper': np.array([40, 255, 255]),
     },
     'green': {
-        'lower': np.array([35, 120, 100]),
-        'upper': np.array([85, 255, 255]),
+        'lower': np.array([35, 40, 40]),
+        'upper': np.array([90, 255, 255]),
     },
     'blue': {
-        'lower': np.array([85, 120, 100]),
+        'lower': np.array([90, 50, 50]),
         'upper': np.array([130, 255, 255]),
+    },
+    'purple': {
+        'lower': np.array([125, 40, 40]),
+        'upper': np.array([165, 255, 255]),
+    },
+    'pink': {
+        'lower': np.array([140, 30, 100]),
+        'upper': np.array([175, 200, 255]),
+    },
+    'black': {
+        'lower': np.array([0, 0, 0]),
+        'upper': np.array([180, 255, 50]),
+    },
+    'grey': {
+        'lower': np.array([0, 0, 50]),
+        'upper': np.array([180, 50, 200]),
     },
 }
 
@@ -76,10 +93,15 @@ class ShapeDetector(Node):
         self.declare_parameter('target_radius', 80)  # Target bounding box size in pixels
         self.declare_parameter('radius_tolerance', 15)
         self.declare_parameter('visualization', False)
-        self.declare_parameter('forward_speed', 0.1)
+        self.declare_parameter('forward_speed', 0.15)
         self.declare_parameter('turn_speed', 0.5)
         self.declare_parameter('min_circularity', 0.7)  # 0-1, 1 is perfect circle
         self.declare_parameter('control_enabled', True)  # Enable movement control
+        
+        # Commitment mode parameters
+        self.declare_parameter('commitment_mode', True)  # Enable step-based movement
+        self.declare_parameter('action_duration', 0.5)   # How long to execute action (seconds)
+        self.declare_parameter('pause_duration', 0.3)    # How long to pause and reassess (seconds)
         
         self.target_color = self.get_parameter('target_color').value
         self.target_radius = self.get_parameter('target_radius').value
@@ -89,6 +111,14 @@ class ShapeDetector(Node):
         self.turn_speed = self.get_parameter('turn_speed').value
         self.min_circularity = self.get_parameter('min_circularity').value
         self.control_enabled = self.get_parameter('control_enabled').value
+        self.commitment_mode = self.get_parameter('commitment_mode').value
+        self.action_duration = self.get_parameter('action_duration').value
+        self.pause_duration = self.get_parameter('pause_duration').value
+        
+        # Commitment state machine
+        self.state = 'ASSESS'  # ASSESS, EXECUTE, PAUSE
+        self.state_start_time = self.get_clock().now()
+        self.current_action = Twist()  # The committed action
         
         # CV Bridge
         self.bridge = CvBridge()
@@ -183,17 +213,19 @@ class ShapeDetector(Node):
             distance_status = "OK"
         elif radius_error > 0:
             # Circle is smaller than target = too far away = move forward
-            linear_x = min(radius_error / self.target_radius, 1.0) * self.forward_speed
+            # Use fixed forward speed (like teleop: 0.15)
+            linear_x = self.forward_speed
             distance_status = "TOO_FAR"
         else:
             # Circle is larger than target = too close = move backward
-            linear_x = max(radius_error / self.target_radius, -1.0) * self.forward_speed
+            # Use fixed backward speed (negative)
+            linear_x = -self.forward_speed
             distance_status = "TOO_CLOSE"
         
         return linear_x, angular_z, distance_status
     
     def image_callback(self, msg):
-        """Process incoming camera frame."""
+        """Process incoming camera frame with commitment-based control."""
         try:
             frame = self.bridge.imgmsg_to_cv2(msg, desired_encoding='rgb8')
             frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
@@ -219,8 +251,8 @@ class ShapeDetector(Node):
             'circles': []
         }
         
-        twist = Twist()  # Default: stop
         distance_status = "NO_TARGET"
+        desired_twist = Twist()  # What we WANT to do based on current detection
         
         if circles:
             result['detected'] = True
@@ -236,22 +268,77 @@ class ShapeDetector(Node):
             if self.control_enabled:
                 linear_x, angular_z, distance_status = self.compute_control(
                     target, width, height)
-                twist.linear.x = linear_x
-                twist.angular.z = angular_z
-            
-            self.get_logger().info(
-                f"{self.target_color} circle detected: radius={target['radius']}px, "
-                f"status={distance_status}, vx={twist.linear.x:.2f}, wz={twist.angular.z:.2f}")
-        else:
-            self.get_logger().debug(f"No {self.target_color} circles detected")
+                desired_twist.linear.x = linear_x
+                desired_twist.angular.z = angular_z
         
         # Publish detection result
         result_msg = String()
         result_msg.data = json.dumps(result)
         self.shape_pub.publish(result_msg)
         
-        # Publish velocity command
-        self.cmd_vel_pub.publish(twist)
+        # === COMMITMENT MODE STATE MACHINE ===
+        if self.commitment_mode and self.control_enabled:
+            now = self.get_clock().now()
+            elapsed = (now - self.state_start_time).nanoseconds / 1e9  # seconds
+            
+            if self.state == 'ASSESS':
+                # Look at the scene and decide what to do
+                if circles and distance_status != "OK":
+                    # Need to move - commit to this action
+                    self.current_action = desired_twist
+                    self.state = 'EXECUTE'
+                    self.state_start_time = now
+                    self.get_logger().info(
+                        f"COMMIT: {distance_status} -> linear.x={desired_twist.linear.x:.2f}, "
+                        f"angular.z={desired_twist.angular.z:.2f} for {self.action_duration}s")
+                elif circles and distance_status == "OK":
+                    # Target acquired, just do minor adjustments for turning
+                    if abs(desired_twist.angular.z) > 0.1:
+                        self.current_action = Twist()
+                        self.current_action.angular.z = desired_twist.angular.z
+                        self.state = 'EXECUTE'
+                        self.state_start_time = now
+                    else:
+                        # We're good! Stay stopped
+                        self.current_action = Twist()
+                        self.cmd_vel_pub.publish(self.current_action)
+                else:
+                    # No target - stop
+                    self.current_action = Twist()
+                    self.cmd_vel_pub.publish(self.current_action)
+            
+            elif self.state == 'EXECUTE':
+                # Execute the committed action
+                if elapsed < self.action_duration:
+                    self.cmd_vel_pub.publish(self.current_action)
+                else:
+                    # Done executing - pause
+                    self.state = 'PAUSE'
+                    self.state_start_time = now
+                    # Send stop command
+                    stop = Twist()
+                    self.cmd_vel_pub.publish(stop)
+                    self.get_logger().info(f"PAUSE: stopping to reassess for {self.pause_duration}s")
+            
+            elif self.state == 'PAUSE':
+                # Pausing to let robot settle and reassess
+                stop = Twist()
+                self.cmd_vel_pub.publish(stop)
+                
+                if elapsed >= self.pause_duration:
+                    # Done pausing - reassess
+                    self.state = 'ASSESS'
+                    self.state_start_time = now
+                    self.get_logger().info("ASSESS: looking at target...")
+        
+        elif self.control_enabled:
+            # Non-commitment mode - continuous control (old behavior)
+            self.cmd_vel_pub.publish(desired_twist)
+            if circles:
+                self.get_logger().info(
+                    f"{self.target_color} circle: radius={circles[0]['radius']}px, "
+                    f"status={distance_status}, linear.x={desired_twist.linear.x:.3f}, "
+                    f"angular.z={desired_twist.angular.z:.3f}")
         
         # Visualization
         if self.visualization:

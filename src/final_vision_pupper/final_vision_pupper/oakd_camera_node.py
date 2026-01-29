@@ -100,9 +100,16 @@ class OakDCameraNode(Node):
             # Create pipeline
             pipeline = dai.Pipeline()
             
-            # Create RGB camera node
-            cam_rgb = pipeline.create(dai.node.ColorCamera)
-            xout_rgb = pipeline.create(dai.node.XLinkOut)
+            # Create RGB camera node - try different API versions
+            try:
+                # Newer API (depthai >= 2.22)
+                cam_rgb = pipeline.create(dai.node.ColorCamera)
+                xout_rgb = pipeline.create(dai.node.XLinkOut)
+            except AttributeError:
+                # Older API
+                cam_rgb = pipeline.createColorCamera()
+                xout_rgb = pipeline.createXLinkOut()
+            
             xout_rgb.setStreamName("rgb")
             
             # RGB camera properties
@@ -116,10 +123,17 @@ class OakDCameraNode(Node):
             
             # Depth stream (optional)
             if self.enable_depth:
-                mono_left = pipeline.create(dai.node.MonoCamera)
-                mono_right = pipeline.create(dai.node.MonoCamera)
-                stereo = pipeline.create(dai.node.StereoDepth)
-                xout_depth = pipeline.create(dai.node.XLinkOut)
+                try:
+                    mono_left = pipeline.create(dai.node.MonoCamera)
+                    mono_right = pipeline.create(dai.node.MonoCamera)
+                    stereo = pipeline.create(dai.node.StereoDepth)
+                    xout_depth = pipeline.create(dai.node.XLinkOut)
+                except AttributeError:
+                    mono_left = pipeline.createMonoCamera()
+                    mono_right = pipeline.createMonoCamera()
+                    stereo = pipeline.createStereoDepth()
+                    xout_depth = pipeline.createXLinkOut()
+                
                 xout_depth.setStreamName("depth")
                 
                 mono_left.setResolution(dai.MonoCameraProperties.SensorResolution.THE_400_P)
@@ -136,8 +150,13 @@ class OakDCameraNode(Node):
             
             # Neural network for person detection (optional)
             if self.enable_nn and self.nn_blob_path:
-                nn = pipeline.create(dai.node.MobileNetDetectionNetwork)
-                xout_nn = pipeline.create(dai.node.XLinkOut)
+                try:
+                    nn = pipeline.create(dai.node.MobileNetDetectionNetwork)
+                    xout_nn = pipeline.create(dai.node.XLinkOut)
+                except AttributeError:
+                    nn = pipeline.createMobileNetDetectionNetwork()
+                    xout_nn = pipeline.createXLinkOut()
+                
                 xout_nn.setStreamName("nn")
                 
                 nn.setBlobPath(self.nn_blob_path)
@@ -163,6 +182,8 @@ class OakDCameraNode(Node):
             
         except Exception as e:
             self.get_logger().error(f"Failed to initialize OAK-D: {e}")
+            import traceback
+            self.get_logger().error(traceback.format_exc())
             self.device = None
     
     def capture_and_publish(self):
